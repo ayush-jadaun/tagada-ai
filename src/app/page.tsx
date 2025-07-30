@@ -281,7 +281,7 @@ const VyapaariLanding = () => {
   ];
 
   const redirectToWhatsApp = () => {
-    window.open("https://wa.me/+919044299909", "_blank");
+    window.open("https://wa.me/+919450206642", "_blank");
   };
 
   const scrollToSection = (sectionId: string) => {
@@ -639,9 +639,9 @@ const VyapaariLanding = () => {
                 <h3 className="font-semibold text-gray-900 text-lg mb-2">
                   Call Us
                 </h3>
-                <p className="text-gray-600 mb-4">+91 9044299909</p>
+                <p className="text-gray-600 mb-4">+91 9450206642</p>
                 <motion.a
-                  href="tel:+919044299909"
+                  href="tel:+919450206642"
                   className="inline-flex items-center text-green-600 hover:text-green-700 font-medium transition-colors duration-300"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -797,7 +797,7 @@ const VyapaariLanding = () => {
                     href="tel:+919044299909"
                     className="text-sm hover:text-blue-400 transition-colors duration-300"
                   >
-                    +91 9044299909
+                    +91 9450206642
                   </a>
                 </motion.div>
                 <motion.div
