@@ -363,7 +363,7 @@ const VyapaariLanding = () => {
                 transition={{ duration: 0.8, delay: 0.2 }}
               >
                 <span className="block sm:inline">
-                  AI Debt Collection Made Simple
+                  Debt Collection Made Simple With
                 </span>
                 <motion.span
                   className="block text-blue-600 mt-1 sm:mt-0"
