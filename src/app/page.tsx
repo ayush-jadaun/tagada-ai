@@ -794,7 +794,7 @@ const VyapaariLanding = () => {
                 >
                   <Phone size={16} />
                   <a
-                    href="tel:+919044299909"
+                    href="tel:+919450206642"
                     className="text-sm hover:text-blue-400 transition-colors duration-300"
                   >
                     +91 9450206642
