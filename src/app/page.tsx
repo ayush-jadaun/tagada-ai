@@ -189,23 +189,46 @@ const VyapaariLanding = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState<VisibilityState>({});
   const [showNavbar, setShowNavbar] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Handle mouse movement for navbar visibility
+  // Check if device is mobile
   useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Handle mouse movement for navbar visibility (desktop only)
+  useEffect(() => {
+    // Always show navbar on mobile
+    if (isMobile) {
+      setShowNavbar(true);
+      return;
+    }
+
     const handleMouseMove = (e: MouseEvent) => {
       setShowNavbar(e.clientY < 100);
     };
 
-    // Show navbar initially, then add mouse listener after 3 seconds
+    // Show navbar initially, then add mouse listener after 3 seconds (desktop only)
     const timer = setTimeout(() => {
-      window.addEventListener("mousemove", handleMouseMove);
+      if (!isMobile) {
+        window.addEventListener("mousemove", handleMouseMove);
+      }
     }, 3000);
 
     return () => {
       clearTimeout(timer);
-      window.removeEventListener("mousemove", handleMouseMove);
+      if (!isMobile) {
+        window.removeEventListener("mousemove", handleMouseMove);
+      }
     };
-  }, []);
+  }, [isMobile]);
 
   useEffect(() => {
     const observerOptions = {
@@ -287,9 +310,9 @@ const VyapaariLanding = () => {
             className="absolute inset-0"
             style={{
               backgroundImage: `
-                linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px)
-              `,
+          linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px)
+        `,
               backgroundSize: "50px 50px",
             }}
           ></div>
@@ -326,7 +349,7 @@ const VyapaariLanding = () => {
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             <motion.div
-              className="text-center lg:text-left"
+              className="text-center lg:text-left order-2 lg:order-1"
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
@@ -334,46 +357,46 @@ const VyapaariLanding = () => {
               id="hero"
             >
               <motion.h1
-                className="text-3xl sm:text-4xl lg:text-6xl font-bold leading-tight mb-4 lg:mb-6 font-serif text-gray-900"
+                className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4 lg:mb-6 font-serif text-gray-900"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
               >
-                AI-Powered Debt Collection
+                <span className="block sm:inline">
+                  AI Debt Collection Made Simple
+                </span>
                 <motion.span
-                  className="block text-blue-600"
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  className="block text-blue-600 mt-1 sm:mt-0"
+                  initial={{ opacity: 0, scale: 0.7 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.6, delay: 0.4 }}
                 >
-                  Made Simple
+                  {" "}
+                  Tagada AI
                 </motion.span>
               </motion.h1>
+
               <motion.div
                 className="mb-6 lg:mb-8"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
               >
-                <p className="text-xl sm:text-2xl font-semibold text-gray-800 mb-2">
-                  Say Goodbye to Manual Calls. Hello to Faster Recovery.
+                <p className="text-lg sm:text-xl font-semibold text-gray-800 mb-3">
+                  Recover More. Spend Less.
                 </p>
-                <p className="text-lg sm:text-xl font-medium text-green-600 mb-4">
-                  Recover More. Spend Less. Sleep Easy.
+                <p className="hidden sm:block text-base sm:text-lg text-gray-600 mb-4 leading-relaxed">
+                  Intelligent automated calls that maintain customer
+                  relationships while maximizing recovery rates.
+                </p>
+                <p className="block sm:hidden text-base text-gray-600 mb-4 leading-relaxed">
+                  Smart AI calls that recover payments while keeping customers
+                  happy.
                 </p>
               </motion.div>
-              <motion.p
-                className="text-lg sm:text-xl text-gray-600 mb-6 lg:mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-              >
-                Recover outstanding payments efficiently with Tagada AI&#39;s
-                intelligent, human-like automated calls that maintain customer
-                relationships while maximizing recovery rates.
-              </motion.p>
+
               <motion.div
-                className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+                className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.5 }}
@@ -384,7 +407,7 @@ const VyapaariLanding = () => {
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  About Product
+                  Learn More
                 </motion.button>
                 <motion.button
                   className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-6 lg:px-8 py-3 lg:py-4 rounded-xl font-semibold text-base lg:text-lg transition-all duration-300"
@@ -392,19 +415,19 @@ const VyapaariLanding = () => {
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  Request Demo
+                  Get Demo
                 </motion.button>
               </motion.div>
             </motion.div>
 
             <motion.div
-              className="relative mt-8 lg:mt-0"
+              className="relative order-1 lg:order-2"
               initial={{ opacity: 0, scale: 0.9, rotate: -5 }}
               animate={{ opacity: 1, scale: 1, rotate: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
             >
               <motion.div
-                className="relative bg-gray-50 rounded-3xl p-8 shadow-xl"
+                className="relative bg-gray-50 rounded-3xl p-6 lg:p-8 shadow-xl"
                 whileHover={{
                   scale: 1.02,
                   rotate: 1,
@@ -413,7 +436,7 @@ const VyapaariLanding = () => {
               >
                 <React.Suspense
                   fallback={
-                    <div className="w-full h-96 bg-gray-200 rounded-2xl animate-pulse"></div>
+                    <div className="w-full h-64 sm:h-80 lg:h-96 bg-gray-200 rounded-2xl animate-pulse"></div>
                   }
                 >
                   <Image
