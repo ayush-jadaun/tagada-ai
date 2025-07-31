@@ -13,7 +13,6 @@ import {
   MessageCircle,
   PlaneTakeoff,
 } from "lucide-react";
-import { motion } from "framer-motion";
 
 // Lazy load heavy components
 const Image = lazy(() => import("next/image"));
@@ -29,6 +28,57 @@ interface Feature {
   description: string;
 }
 
+// Typing Animation Component
+const TypingAnimation = memo(() => {
+  const [currentText, setCurrentText] = useState("");
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [typeSpeed, setTypeSpeed] = useState(150);
+
+  const textOptions = React.useMemo(
+    () => [
+      "Tagada AI",
+      "तगादा AI", // Hindi
+      "তাগাদা AI", // Bengali
+      "తగాదా AI", // Telugu
+    ],
+    []
+  );
+
+  useEffect(() => {
+    const handleType = () => {
+      const current = textOptions[currentIndex];
+
+      if (isDeleting) {
+        setCurrentText(current.substring(0, currentText.length - 1));
+        setTypeSpeed(75);
+      } else {
+        setCurrentText(current.substring(0, currentText.length + 1));
+        setTypeSpeed(150);
+      }
+
+      if (!isDeleting && currentText === current) {
+        setTimeout(() => setIsDeleting(true), 2000);
+      } else if (isDeleting && currentText === "") {
+        setIsDeleting(false);
+        setCurrentIndex((prev) => (prev + 1) % textOptions.length);
+      }
+    };
+
+    const timer = setTimeout(handleType, typeSpeed);
+    return () => clearTimeout(timer);
+  }, [currentText, isDeleting, currentIndex, typeSpeed, textOptions]);
+
+  return (
+    <span className="inline-block">
+      {currentText}
+      <span className="animate-pulse">|</span>
+    </span>
+  );
+});
+
+TypingAnimation.displayName = "TypingAnimation";
+
 // Memoized feature card component
 const FeatureCard = memo(
   ({
@@ -43,47 +93,32 @@ const FeatureCard = memo(
     const Icon = feature.icon;
 
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 50, scale: 0.95 }}
-        animate={
+      <div
+        className={`bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 hover:border-blue-200 group transform ${
           isVisible
-            ? { opacity: 1, y: 0, scale: 1 }
-            : { opacity: 0, y: 50, scale: 0.95 }
-        }
-        transition={{
-          duration: 0.6,
-          delay: index * 0.15,
-          ease: [0.25, 0.46, 0.45, 0.94],
-        }}
-        whileHover={{
-          scale: 1.05,
-          y: -5,
-          transition: { duration: 0.3 },
-        }}
-        className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-500 border border-gray-100 hover:border-blue-200 group"
+            ? "translate-y-0 opacity-100 scale-100"
+            : "translate-y-12 opacity-0 scale-95"
+        }`}
         style={{
+          transitionDelay: `${index * 150}ms`,
           boxShadow: "0 4px 25px rgba(0, 0, 0, 0.08)",
         }}
       >
-        <motion.div
-          className="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-blue-100 transition-colors duration-300"
-          whileHover={{ rotate: 5, scale: 1.1 }}
-          transition={{ duration: 0.3 }}
-        >
+        <div className="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-blue-100 transition-colors duration-300 group-hover:scale-110 group-hover:rotate-3">
           <Icon className="w-7 h-7 text-blue-600" />
-        </motion.div>
+        </div>
         <h3 className="text-xl font-semibold text-gray-900 mb-3">
           {feature.title}
         </h3>
         <p className="text-gray-600 leading-relaxed">{feature.description}</p>
-      </motion.div>
+      </div>
     );
   }
 );
 
 FeatureCard.displayName = "FeatureCard";
 
-// Memoized navigation component
+// Memoized navigation component with typing animation
 const Navigation = memo(
   ({
     showNavbar,
@@ -95,15 +130,12 @@ const Navigation = memo(
     setIsMenuOpen: (open: boolean) => void;
   }) => {
     return (
-      <motion.nav
-        initial={{ y: -100, opacity: 0 }}
-        animate={{
-          y: showNavbar ? 0 : -100,
-          opacity: showNavbar ? 1 : 0,
-          scale: showNavbar ? 1 : 0.95,
-        }}
-        transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 rounded-2xl w-full md:max-w-4xl"
+      <nav
+        className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 rounded-2xl w-full md:max-w-4xl transition-all duration-500 ${
+          showNavbar
+            ? "translate-y-0 opacity-100 scale-100"
+            : "-translate-y-28 opacity-0 scale-95"
+        }`}
         style={{
           background: "rgba(255, 255, 255, 0.95)",
           backdropFilter: "blur(20px)",
@@ -113,72 +145,60 @@ const Navigation = memo(
       >
         <div className="md:max-w-4xl w-full mx-auto px-6 py-3 rounded-2xl">
           <div className="flex w-full justify-between items-center">
-            <motion.div
-              className="flex items-center mr-3"
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.2 }}
-            >
+            <div className="flex items-center mr-3 hover:scale-105 transition-transform duration-200">
               <div className="text-xl font-bold text-gray-900">
-                Tagada <span className="text-blue-600">AI</span>
+                <TypingAnimation />
               </div>
-            </motion.div>
+            </div>
 
             <div className="hidden md:block">
               <div className="flex items-center space-x-6">
                 {["Home", "Features", "Pricing", "Contact"].map((item) => (
-                  <motion.a
+                  <a
                     key={item}
                     href={`#${item.toLowerCase().replace(" ", "-")}`}
-                    className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors duration-300 relative group"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-all duration-300 relative group hover:scale-105"
                   >
                     {item}
                     <span className="absolute inset-x-0 bottom-0 h-0.5 bg-blue-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 rounded-full"></span>
-                  </motion.a>
+                  </a>
                 ))}
               </div>
             </div>
 
             <div className="md:hidden">
-              <motion.button
+              <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-gray-700 hover:text-blue-600 transition-colors duration-300"
-                whileTap={{ scale: 0.95 }}
+                className="text-gray-700 hover:text-blue-600 transition-colors duration-300 hover:scale-110"
               >
                 {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
-              </motion.button>
+              </button>
             </div>
           </div>
 
           {/* Mobile menu */}
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{
-              opacity: isMenuOpen ? 1 : 0,
-              height: isMenuOpen ? "auto" : 0,
-            }}
-            transition={{ duration: 0.3 }}
-            className="md:hidden overflow-hidden"
+          <div
+            className={`md:hidden overflow-hidden transition-all duration-300 ${
+              isMenuOpen ? "max-h-48 opacity-100" : "max-h-0 opacity-0"
+            }`}
           >
             <div className="mt-4 pt-4 border-t border-gray-200">
               <div className="flex justify-between items-center space-x-4">
                 {["Home", "Features", "Pricing", "Contact"].map((item) => (
-                  <motion.a
+                  <a
                     key={item}
                     href={`#${item.toLowerCase().replace(" ", "-")}`}
-                    className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors duration-300 rounded-lg hover:bg-blue-50"
+                    className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-all duration-300 rounded-lg hover:bg-blue-50 hover:scale-105"
                     onClick={() => setIsMenuOpen(false)}
-                    whileTap={{ scale: 0.95 }}
                   >
                     {item}
-                  </motion.a>
+                  </a>
                 ))}
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
-      </motion.nav>
+      </nav>
     );
   }
 );
@@ -318,70 +338,40 @@ const VyapaariLanding = () => {
           ></div>
         </div>
 
-        {/* Subtle background elements */}
+        {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden">
-          <motion.div
-            className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-50 rounded-full blur-3xl"
-            animate={{
-              scale: [1, 1.1, 1],
-              opacity: [0.3, 0.5, 0.3],
-            }}
-            transition={{
-              duration: 8,
-              repeat: Infinity,
-              ease: "easeInOut",
+          <div
+            className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-50 rounded-full blur-3xl animate-pulse"
+            style={{
+              animation: "float 8s ease-in-out infinite",
             }}
           />
-          <motion.div
-            className="absolute -top-40 -right-40 w-96 h-96 bg-green-50 rounded-full blur-3xl"
-            animate={{
-              scale: [1.1, 1, 1.1],
-              opacity: [0.3, 0.5, 0.3],
-            }}
-            transition={{
-              duration: 10,
-              repeat: Infinity,
-              ease: "easeInOut",
+          <div
+            className="absolute -top-40 -right-40 w-96 h-96 bg-green-50 rounded-full blur-3xl animate-pulse"
+            style={{
+              animation: "float 10s ease-in-out infinite reverse",
             }}
           />
         </div>
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            <motion.div
-              className="text-center lg:text-left order-2 lg:order-1"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+            <div
+              className="text-center lg:text-left order-2 lg:order-1 animate-fadeInUp"
               data-animate
               id="hero"
             >
-              <motion.h1
-                className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4 lg:mb-6 font-serif text-gray-900"
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-              >
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4 lg:mb-6 font-serif text-gray-900">
                 <span className="block sm:inline">
                   Debt Collection Made Simple With
                 </span>
-                <motion.span
-                  className="block text-blue-600 mt-1 sm:mt-0"
-                  initial={{ opacity: 0, scale: 0.7 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.6, delay: 0.4 }}
-                >
+                <span className="block text-blue-600 mt-1 sm:mt-0 min-h-[1.2em]">
                   {" "}
-                  Tagada AI
-                </motion.span>
-              </motion.h1>
+                  <TypingAnimation />
+                </span>
+              </h1>
 
-              <motion.div
-                className="mb-6 lg:mb-8"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-              >
+              <div className="mb-6 lg:mb-8">
                 <p className="text-lg sm:text-xl font-semibold text-gray-800 mb-3">
                   Recover More. Spend Less.
                 </p>
@@ -393,47 +383,26 @@ const VyapaariLanding = () => {
                   Smart AI calls that recover payments while keeping customers
                   happy.
                 </p>
-              </motion.div>
+              </div>
 
-              <motion.div
-                className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-              >
-                <motion.button
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 lg:px-8 py-3 lg:py-4 rounded-xl font-semibold text-base lg:text-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
+                <button
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 lg:px-8 py-3 lg:py-4 rounded-xl font-semibold text-base lg:text-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1"
                   onClick={() => scrollToSection("features")}
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
                 >
                   Learn More
-                </motion.button>
-                <motion.button
-                  className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-6 lg:px-8 py-3 lg:py-4 rounded-xl font-semibold text-base lg:text-lg transition-all duration-300"
+                </button>
+                <button
+                  className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-6 lg:px-8 py-3 lg:py-4 rounded-xl font-semibold text-base lg:text-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1"
                   onClick={redirectToWhatsApp}
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
                 >
                   Get Demo
-                </motion.button>
-              </motion.div>
-            </motion.div>
+                </button>
+              </div>
+            </div>
 
-            <motion.div
-              className="relative order-1 lg:order-2"
-              initial={{ opacity: 0, scale: 0.9, rotate: -5 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-            >
-              <motion.div
-                className="relative bg-gray-50 rounded-3xl p-6 lg:p-8 shadow-xl"
-                whileHover={{
-                  scale: 1.02,
-                  rotate: 1,
-                  transition: { duration: 0.3 },
-                }}
-              >
+            <div className="relative order-1 lg:order-2">
+              <div className="relative bg-gray-50 rounded-3xl p-6 lg:p-8 shadow-xl hover:scale-105 hover:rotate-1 transition-all duration-300">
                 <React.Suspense
                   fallback={
                     <div className="w-full h-64 sm:h-80 lg:h-96 bg-gray-200 rounded-2xl animate-pulse"></div>
@@ -448,8 +417,8 @@ const VyapaariLanding = () => {
                   />
                 </React.Suspense>
                 <div className="absolute inset-0 bg-blue-600/5 rounded-2xl"></div>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -457,13 +426,7 @@ const VyapaariLanding = () => {
       {/* Features Section */}
       <section id="features" className="py-16 lg:py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="text-center mb-12 lg:mb-16"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
+          <div className="text-center mb-12 lg:mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4 font-serif">
               Powerful Features for Modern Businesses
             </h2>
@@ -472,7 +435,7 @@ const VyapaariLanding = () => {
               proven collection strategies to deliver exceptional results while
               maintaining customer satisfaction.
             </p>
-          </motion.div>
+          </div>
 
           <div
             className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
@@ -494,13 +457,7 @@ const VyapaariLanding = () => {
       {/* Pricing Section */}
       <section id="pricing" className="py-16 lg:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="text-center mb-12 lg:mb-16"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
+          <div className="text-center mb-12 lg:mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold mb-4 font-serif text-gray-900">
               Ready to Get Started?
             </h2>
@@ -510,33 +467,23 @@ const VyapaariLanding = () => {
               revolutionize how businesses handle payment recovery while
               maintaining customer relationships.
             </p>
-          </motion.div>
+          </div>
 
           <div className="max-w-2xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 50, scale: 0.95 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
+            <div
               data-animate
               id="pricing"
+              className={`transition-all duration-600 ${
+                isVisible.pricing
+                  ? "translate-y-0 opacity-100 scale-100"
+                  : "translate-y-12 opacity-0 scale-95"
+              }`}
             >
-              <motion.div
-                className="bg-gray-50 rounded-3xl shadow-xl p-8 lg:p-12 border border-gray-100 group"
-                whileHover={{
-                  scale: 1.02,
-                  boxShadow: "0 25px 50px rgba(0, 0, 0, 0.15)",
-                  transition: { duration: 0.3 },
-                }}
-              >
+              <div className="bg-gray-50 rounded-3xl shadow-xl p-8 lg:p-12 border border-gray-100 group hover:scale-105 hover:shadow-2xl transition-all duration-300">
                 <div className="text-center">
-                  <motion.div
-                    className="w-20 h-20 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6"
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    transition={{ duration: 0.3 }}
-                  >
+                  <div className="w-20 h-20 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
                     <MessageCircle className="w-10 h-10 text-green-600" />
-                  </motion.div>
+                  </div>
 
                   <h3 className="text-2xl lg:text-3xl font-bold mb-4 text-gray-900">
                     Be Among the First to Experience the Future
@@ -549,19 +496,17 @@ const VyapaariLanding = () => {
                   </p>
 
                   <div className="space-y-4">
-                    <motion.button
+                    <button
                       onClick={redirectToWhatsApp}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 px-8 rounded-xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      whileTap={{ scale: 0.95 }}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 px-8 rounded-xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 hover:scale-105 hover:-translate-y-1"
                     >
                       <PlaneTakeoff className="w-6 h-6 mr-2" />
                       <span>Get Early Access</span>
-                    </motion.button>
+                    </button>
                   </div>
                 </div>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -569,133 +514,87 @@ const VyapaariLanding = () => {
       {/* Contact Section */}
       <section id="contact" className="py-16 lg:py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="text-center mb-12"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
+          <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6 font-serif">
               Ready to Transform Your Collections?
             </h2>
             <p className="text-lg lg:text-xl text-gray-600 mb-8">
-              Get in touch with our team to learn how Tagada AI can help you
-              recover outstanding payments while maintaining positive customer
-              relationships.
+              Get in touch with our team to learn how <TypingAnimation /> can
+              help you recover outstanding payments while maintaining positive
+              customer relationships.
             </p>
-          </motion.div>
+          </div>
 
-          <motion.div
-            className="max-w-3xl mx-auto"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            viewport={{ once: true }}
-            data-animate
-            id="contact"
-          >
-            <div className="grid md:grid-cols-3 gap-8">
+          <div className="max-w-3xl mx-auto" data-animate id="contact">
+            <div
+              className={`grid md:grid-cols-3 gap-8 transition-all duration-600 ${
+                isVisible.contact
+                  ? "translate-y-0 opacity-100"
+                  : "translate-y-12 opacity-0"
+              }`}
+            >
               {/* Email */}
-              <motion.div
-                className="text-center group"
-                whileHover={{ y: -5 }}
-                transition={{ duration: 0.3 }}
-              >
-                <motion.div
-                  className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-200 transition-colors duration-300"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ duration: 0.3 }}
-                >
+              <div className="text-center group hover:-translate-y-2 transition-transform duration-300">
+                <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-200 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
                   <Mail className="w-8 h-8 text-blue-600" />
-                </motion.div>
+                </div>
                 <h3 className="font-semibold text-gray-900 text-lg mb-2">
                   Email Us
                 </h3>
                 <p className="text-gray-600 mb-4">adityaomar33@gmail.com</p>
-                <motion.a
+                <a
                   href="mailto:adityaomar33@gmail.com"
-                  className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium transition-colors duration-300"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium transition-all duration-300 hover:scale-105"
                 >
                   Send Email
-                </motion.a>
-              </motion.div>
+                </a>
+              </div>
 
               {/* Phone */}
-              <motion.div
-                className="text-center group"
-                whileHover={{ y: -5 }}
-                transition={{ duration: 0.3 }}
-              >
-                <motion.div
-                  className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-green-200 transition-colors duration-300"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ duration: 0.3 }}
-                >
+              <div className="text-center group hover:-translate-y-2 transition-transform duration-300">
+                <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-green-200 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
                   <Phone className="w-8 h-8 text-green-600" />
-                </motion.div>
+                </div>
                 <h3 className="font-semibold text-gray-900 text-lg mb-2">
                   Call Us
                 </h3>
                 <p className="text-gray-600 mb-4">+91 9450206642</p>
-                <motion.a
+                <a
                   href="tel:+919450206642"
-                  className="inline-flex items-center text-green-600 hover:text-green-700 font-medium transition-colors duration-300"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  className="inline-flex items-center text-green-600 hover:text-green-700 font-medium transition-all duration-300 hover:scale-105"
                 >
                   Call Now
-                </motion.a>
-              </motion.div>
+                </a>
+              </div>
 
               {/* WhatsApp */}
-              <motion.div
-                className="text-center group"
-                whileHover={{ y: -5 }}
-                transition={{ duration: 0.3 }}
-              >
-                <motion.div
-                  className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-green-200 transition-colors duration-300"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ duration: 0.3 }}
-                >
+              <div className="text-center group hover:-translate-y-2 transition-transform duration-300">
+                <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-green-200 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
                   <MessageCircle className="w-8 h-8 text-green-600" />
-                </motion.div>
+                </div>
                 <h3 className="font-semibold text-gray-900 text-lg mb-2">
                   WhatsApp
                 </h3>
                 <p className="text-gray-600 mb-4">Quick chat support</p>
-                <motion.button
+                <button
                   onClick={redirectToWhatsApp}
-                  className="inline-flex items-center text-green-600 hover:text-green-700 font-medium transition-colors duration-300"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  className="inline-flex items-center text-green-600 hover:text-green-700 font-medium transition-all duration-300 hover:scale-105"
                 >
                   Chat Now
-                </motion.button>
-              </motion.div>
+                </button>
+              </div>
             </div>
 
             {/* CTA Button */}
-            <motion.div
-              className="text-center mt-12"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              viewport={{ once: true }}
-            >
-              <motion.button
+            <div className="text-center mt-12">
+              <button
                 onClick={redirectToWhatsApp}
-                className="bg-blue-600 hover:bg-blue-700 text-white py-4 px-8 rounded-xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl"
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
+                className="bg-blue-600 hover:bg-blue-700 text-white py-4 px-8 rounded-xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1"
               >
                 Get Started Today
-              </motion.button>
-            </motion.div>
-          </motion.div>
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -705,45 +604,37 @@ const VyapaariLanding = () => {
           <div className="grid md:grid-cols-4 gap-8 mb-12">
             {/* Company Info */}
             <div className="md:col-span-2">
-              <motion.div
-                className="text-3xl font-bold mb-4 text-white"
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.2 }}
-              >
-                Tagada <span className="text-blue-400">AI</span>
-              </motion.div>
+              <div className="text-3xl font-bold mb-4 text-white hover:scale-105 transition-transform duration-200">
+                <TypingAnimation />
+              </div>
               <p className="text-gray-300 mb-6 max-w-md leading-relaxed">
                 Empowering businesses with AI-driven debt recovery solutions
                 that maintain customer relationships while maximizing collection
                 success. Built for the future of collections.
               </p>
               <div className="flex space-x-4">
-                <motion.a
+                <a
                   href="https://www.linkedin.com/in/aditya-omar-631413229/"
                   target="_blank"
-                  className="text-gray-400 hover:text-blue-400 transition-colors duration-300 p-3 rounded-xl"
-                  whileHover={{ scale: 1.1, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-blue-400 transition-all duration-300 p-3 rounded-xl hover:scale-110 hover:-translate-y-1"
                 >
                   <Linkedin size={24} />
-                </motion.a>
-                <motion.a
+                </a>
+                <a
                   href="https://x.com/aditya_omar3?t=dQxdYSlom9CnnVmDaOik0Uxw&s=09"
                   target="_blank"
-                  className="text-gray-400 hover:text-blue-400 transition-colors duration-300 p-3 rounded-xl"
-                  whileHover={{ scale: 1.1, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-blue-400 transition-all duration-300 p-3 rounded-xl hover:scale-110 hover:-translate-y-1"
                 >
                   <Twitter size={24} />
-                </motion.a>
-                <motion.button
+                </a>
+                <button
                   onClick={redirectToWhatsApp}
-                  className="text-gray-400 hover:text-green-400 transition-colors duration-300 p-3 rounded-xl"
-                  whileHover={{ scale: 1.1, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
+                  className="text-gray-400 hover:text-green-400 transition-all duration-300 p-3 rounded-xl hover:scale-110 hover:-translate-y-1"
                 >
                   <MessageCircle size={24} />
-                </motion.button>
+                </button>
               </div>
             </div>
 
@@ -755,14 +646,12 @@ const VyapaariLanding = () => {
               <ul className="space-y-3">
                 {["Home", "Features", "Pricing", "Contact"].map((item) => (
                   <li key={item}>
-                    <motion.a
+                    <a
                       href={`#${item.toLowerCase()}`}
-                      className="text-gray-400 hover:text-white transition-colors duration-300"
-                      whileHover={{ x: 5, scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      className="text-gray-400 hover:text-white transition-all duration-300 hover:translate-x-2 hover:scale-105 inline-block"
                     >
                       {item}
-                    </motion.a>
+                    </a>
                   </li>
                 ))}
               </ul>
@@ -774,11 +663,7 @@ const VyapaariLanding = () => {
                 Get in Touch
               </h3>
               <div className="space-y-3">
-                <motion.div
-                  className="flex items-center space-x-3 text-gray-400"
-                  whileHover={{ x: 5 }}
-                  transition={{ duration: 0.2 }}
-                >
+                <div className="flex items-center space-x-3 text-gray-400 hover:translate-x-2 transition-transform duration-200">
                   <Mail size={16} />
                   <a
                     href="mailto:adityaomar33@gmail.com"
@@ -786,12 +671,8 @@ const VyapaariLanding = () => {
                   >
                     adityaomar33@gmail.com
                   </a>
-                </motion.div>
-                <motion.div
-                  className="flex items-center space-x-3 text-gray-400"
-                  whileHover={{ x: 5 }}
-                  transition={{ duration: 0.2 }}
-                >
+                </div>
+                <div className="flex items-center space-x-3 text-gray-400 hover:translate-x-2 transition-transform duration-200">
                   <Phone size={16} />
                   <a
                     href="tel:+919450206642"
@@ -799,12 +680,8 @@ const VyapaariLanding = () => {
                   >
                     +91 9450206642
                   </a>
-                </motion.div>
-                <motion.div
-                  className="flex items-center space-x-3 text-gray-400"
-                  whileHover={{ x: 5 }}
-                  transition={{ duration: 0.2 }}
-                >
+                </div>
+                <div className="flex items-center space-x-3 text-gray-400 hover:translate-x-2 transition-transform duration-200">
                   <MessageCircle size={16} />
                   <span
                     onClick={redirectToWhatsApp}
@@ -812,25 +689,46 @@ const VyapaariLanding = () => {
                   >
                     WhatsApp Support
                   </span>
-                </motion.div>
+                </div>
               </div>
             </div>
           </div>
 
-          <motion.div
-            className="border-t border-gray-700 pt-8 flex flex-col md:flex-row justify-center items-center"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
+          <div className="border-t border-gray-700 pt-8 flex flex-col md:flex-row justify-center items-center">
             <p className="text-gray-400 text-sm mb-4 md:mb-0">
               &copy; 2025 Tagada AI. All rights reserved. Building the future of
               debt collection.
             </p>
-          </motion.div>
+          </div>
         </div>
       </footer>
+
+      <style jsx>{`
+        @keyframes float {
+          0%,
+          100% {
+            transform: translateY(0px) scale(1);
+          }
+          50% {
+            transform: translateY(-20px) scale(1.05);
+          }
+        }
+
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fadeInUp {
+          animation: fadeInUp 0.8s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 };
